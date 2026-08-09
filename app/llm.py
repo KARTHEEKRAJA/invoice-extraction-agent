@@ -109,9 +109,15 @@ def extract_invoice(
             f"text layer. Use a vision-capable provider for scanned invoices."
         )
 
-    llm = providers.build(
-        api_key=api_key, provider=spec.name, model=model
-    ).with_structured_output(Invoice)
+    # Construction can fail too - a missing or malformed key raises here,
+    # before any network call. That must be classified as well, or the
+    # graph treats it as transient and burns a retry on it.
+    try:
+        llm = providers.build(
+            api_key=api_key, provider=spec.name, model=model
+        ).with_structured_output(Invoice)
+    except Exception as exc:
+        raise classify_error(exc) from exc
 
     system = SYSTEM_PROMPT
     if prior_issues:

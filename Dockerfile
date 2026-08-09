@@ -11,6 +11,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
+# Declarations the platform reads: connection rule and client setup fields.
+COPY central_ai_manifest.json client_config_schema.json ./
 
 # Never run as root in a container that processes untrusted uploads.
 RUN useradd -m -u 1000 agent && chown -R agent:agent /app

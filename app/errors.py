@@ -42,6 +42,9 @@ _PERMANENT_MARKERS = (
     # Generic
     "your account is not authorized",
     "billing",
+    # Missing credential entirely - a retry cannot conjure one.
+    "an api key is required",
+    "api key is required",
 )
 
 
@@ -87,6 +90,11 @@ def friendly_message(exc: Exception) -> str:
         )
     if "insufficient_quota" in low or "exceeded your current quota" in low:
         return "The OpenAI account is out of quota. Add billing at platform.openai.com."
+    if "api key is required" in low:
+        return (
+            "No API key was supplied. This agent needs a model provider "
+            "credential passed per request."
+        )
     if "invalid x-api-key" in low or "authentication_error" in low:
         return "The API key was rejected. Check the key is correct and active."
     if "connection refused" in low or "connect call failed" in low:

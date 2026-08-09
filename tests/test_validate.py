@@ -246,3 +246,60 @@ def test_limit_zero_is_distinguished_from_exhausted_quota():
     msg = friendly_message(Exception("429 RESOURCE_EXHAUSTED limit: 0, model: gemini-2.0-flash"))
     assert "never granted" in msg
     assert "check_provider" in msg
+
+
+# --- Entrypoint -----------------------------------------------------------
+# The package entrypoint was empty, which meant a platform smoke test had
+# nothing to call. These pin the contract without needing an API key.
+
+def test_entrypoint_is_importable_and_callable():
+    import app
+    assert callable(app.run_agent)
+    assert app.__version__
+
+
+def test_entrypoint_declares_one_of_not_all():
+    """The analyzer read three providers as three required connections.
+    The package states the truth: one provider per run."""
+    import app
+    assert app.PROVIDER_REQUIREMENT == "one_of"
+    assert "google" in app.SUPPORTED_PROVIDERS
+
+
+def test_missing_file_returns_a_result_not_an_exception():
+    """A host calling with no file should get a structured error back,
+    not a traceback."""
+    import app
+    out = app.run_agent(file=None, api_key="x")
+    assert out["success"] is False
+    assert out["needs_review"] is True
+    assert any(i["field"] == "file" for i in out["issues"])
+
+
+def test_bad_base64_is_reported_cleanly():
+    import app
+    out = app.run_agent(file="!!!not base64!!!", api_key="x")
+    assert out["success"] is False
+    assert "base64" in out["issues"][0]["message"].lower()
+
+
+def test_manifest_declares_one_of_connections():
+    """The manifest is what corrects the misdetected connection set."""
+    import json
+    from pathlib import Path
+
+    manifest = json.loads(
+        (Path(__file__).parent.parent / "central_ai_manifest.json").read_text()
+    )
+    assert manifest["connections"]["requirement_rule"] == "one_of"
+    assert manifest["credential_handling"]["scope"] == "per_request"
+    assert manifest["credential_handling"]["cached"] is False
+
+
+def test_missing_key_is_permanent_not_retried():
+    """A smoke test with no credential should fail once, not twice.
+    Retrying a missing key wastes a call to receive the same error."""
+    assert isinstance(
+        classify_error(Exception("An API key is required for google.")),
+        PermanentError,
+    )

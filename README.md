@@ -79,7 +79,7 @@ Python 3.11 or newer. Check with `python --version`.
 
 **Windows (PowerShell)**
 ```powershell
-git clone https://github.com/KARTHEEKRAJA/invoice-extraction-agent.git
+git clone https://github.com/YOUR_USERNAME/invoice-extraction-agent.git
 cd invoice-extraction-agent
 
 python -m venv .venv
@@ -93,7 +93,7 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 **macOS / Linux**
 ```bash
-git clone https://github.com/KARTHEEKRAJA/invoice-extraction-agent.git
+git clone https://github.com/YOUR_USERNAME/invoice-extraction-agent.git
 cd invoice-extraction-agent
 
 python3 -m venv .venv

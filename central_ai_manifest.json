@@ -1,0 +1,87 @@
+{
+  "name": "Invoice Extraction Agent",
+  "version": "1.0.0",
+  "entrypoint": "app:run_agent",
+  "runtime": {
+    "framework": "langgraph",
+    "language": "python",
+    "python_version": ">=3.11"
+  },
+
+  "_note_on_connections": "An automated scan of app/providers.py may report Google, OpenAI and Anthropic as three separate required connections. That is a misreading. This agent calls exactly ONE model provider per run, selected by the client. The provider list exists so clients can bring the vendor they already pay for.",
+
+  "connections": {
+    "requirement_rule": "one_of",
+    "options": [
+      {
+        "id": "google",
+        "label": "Google Gemini",
+        "credential_type": "api_key",
+        "used_for": "Model inference only. Gemini API via generativelanguage.googleapis.com.",
+        "scopes_not_used": [
+          "gmail.read", "gmail.send",
+          "calendar.read", "calendar.write",
+          "drive.read",
+          "sheets.read", "sheets.write",
+          "tasks.read", "tasks.write"
+        ],
+        "scopes_note": "This agent uses NO Google Workspace APIs. It does not read or send email, touch Calendar, Drive, Sheets or Tasks. Requesting those scopes would over-permission the client for no functional reason."
+      },
+      {
+        "id": "anthropic",
+        "label": "Anthropic",
+        "credential_type": "api_key",
+        "used_for": "Model inference only."
+      },
+      {
+        "id": "openai",
+        "label": "OpenAI",
+        "credential_type": "api_key",
+        "used_for": "Model inference only."
+      },
+      {
+        "id": "ollama",
+        "label": "Ollama (self-hosted)",
+        "credential_type": "none",
+        "used_for": "Local model inference. No credential required."
+      }
+    ]
+  },
+
+  "agent_owned_surfaces": [
+    {
+      "id": "http",
+      "kind": "http_endpoint",
+      "path": "app/api.py",
+      "note": "This agent's own FastAPI service. It is not an external connection a client must link."
+    }
+  ],
+
+  "credential_handling": {
+    "scope": "per_request",
+    "transport": "X-Api-Key header",
+    "cached": false,
+    "stored": false,
+    "logged": false,
+    "module_level_client": false,
+    "note": "The key travels as a function argument through graph state. MULTI_TENANT=true disables the environment-variable fallback entirely, so a missing per-request key returns 401 rather than silently using a shared credential."
+  },
+
+  "input": {
+    "surface": "file_upload",
+    "accepts": ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    "max_bytes": 10485760
+  },
+
+  "output": {
+    "kinds": ["text", "files"],
+    "formats": ["json", "csv"]
+  },
+
+  "limitations": [
+    "Produces an accounting import file only. Does not write to Xero, QuickBooks, or any accounting system via API.",
+    "Vision path for scanned documents is capped at 3 pages per file.",
+    "Handwritten invoices are not reliably supported.",
+    "Where an invoice's own arithmetic does not reconcile, values are returned as printed and flagged, not corrected."
+  ]
+}
