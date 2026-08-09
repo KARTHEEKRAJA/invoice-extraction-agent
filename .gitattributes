@@ -1,0 +1,13 @@
+* text=auto
+
+*.py   text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.txt  text eol=lf
+Dockerfile text eol=lf
+
+*.pdf  binary
+*.jpg  binary
+*.jpeg binary
+*.png  binary
+*.zip  binary

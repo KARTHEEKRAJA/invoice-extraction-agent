@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Invoice Extraction Agent - client setup",
+  "description": "Non-secret configuration only. API credentials are collected through Central AI Connections, never here.",
+  "type": "object",
+  "properties": {
+    "llm_provider": {
+      "type": "string",
+      "title": "Model provider",
+      "description": "Which model provider to use. Your API credential is supplied through Connections, not here.",
+      "enum": [
+        "google",
+        "anthropic",
+        "openai"
+      ],
+      "default": "google"
+    },
+    "output_format": {
+      "type": "string",
+      "title": "Accounting system",
+      "description": "Which CSV layout to produce.",
+      "enum": [
+        "xero",
+        "quickbooks",
+        "generic"
+      ],
+      "default": "generic"
+    },
+    "date_format": {
+      "type": "string",
+      "title": "Date format",
+      "description": "How dates should appear in the exported CSV.",
+      "enum": [
+        "%d/%m/%Y",
+        "%m/%d/%Y",
+        "%Y-%m-%d"
+      ],
+      "default": "%d/%m/%Y"
+    },
+    "default_currency": {
+      "type": "string",
+      "title": "Default currency",
+      "description": "Used when the invoice does not state a currency.",
+      "default": "AUD",
+      "maxLength": 3
+    },
+    "flag_threshold": {
+      "type": "number",
+      "title": "Review threshold",
+      "description": "Flag invoices above this amount for manual review regardless of validation result.",
+      "default": 0
+    }
+  },
+  "required": [
+    "output_format",
+    "llm_provider"
+  ],
+  "additionalProperties": false
+}
